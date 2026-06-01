@@ -1,0 +1,7 @@
+# Local agent/tooling state
+.agents/
+skills-lock.json
+
+# One-off maintenance helpers used to prepare materials
+scripts/
+tests/
