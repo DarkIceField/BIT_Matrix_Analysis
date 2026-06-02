@@ -5,3 +5,11 @@ skills-lock.json
 # One-off maintenance helpers used to prepare materials
 scripts/
 tests/
+
+# GitHub Actions runtime helpers are part of the repository automation
+!.github/scripts/
+!.github/scripts/**
+
+# Python caches
+__pycache__/
+*.py[cod]

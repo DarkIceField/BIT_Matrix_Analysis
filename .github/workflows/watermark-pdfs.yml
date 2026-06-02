@@ -1,0 +1,56 @@
+name: Watermark exam PDFs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '试卷/*.pdf'
+      - '试卷/*.PDF'
+      - '试卷/**/*.pdf'
+      - '试卷/**/*.PDF'
+
+permissions:
+  contents: write
+
+jobs:
+  watermark:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install PDF dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pypdf reportlab
+
+      - name: Watermark changed exam PDFs
+        run: |
+          python .github/scripts/watermark_pdfs.py \
+            --changed-from "${{ github.event.before }}" \
+            --changed-to "${{ github.sha }}" \
+            --json
+
+      - name: Commit watermarked PDFs
+        run: |
+          if git diff --quiet -- ':(glob)试卷/**/*.pdf' ':(glob)试卷/**/*.PDF'; then
+            echo "No PDF watermark changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- ':(glob)试卷/**/*.pdf' ':(glob)试卷/**/*.PDF'
+          git commit -m "chore(试卷): 自动添加 PDF 水印 [skip ci]"
+          git push
