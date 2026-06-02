@@ -1,6 +1,7 @@
 name: Watermark exam PDFs
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -28,7 +29,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-          cache: pip
 
       - name: Install PDF dependencies
         run: |
@@ -37,10 +37,14 @@ jobs:
 
       - name: Watermark changed exam PDFs
         run: |
-          python .github/scripts/watermark_pdfs.py \
-            --changed-from "${{ github.event.before }}" \
-            --changed-to "${{ github.sha }}" \
-            --json
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python .github/scripts/watermark_pdfs.py --all-existing --json
+          else
+            python .github/scripts/watermark_pdfs.py \
+              --changed-from "${{ github.event.before }}" \
+              --changed-to "${{ github.sha }}" \
+              --json
+          fi
 
       - name: Commit watermarked PDFs
         run: |
